@@ -34,46 +34,44 @@
         loader.load('app.json', function (text) {
 
             var player = new APP.Player();
-            player.load(JSON.parse(text)).then(() => {
-                player.setSize(window.innerWidth, window.innerHeight);
-                player.play();
+            player.load(JSON.parse(text)); // ここでPromiseではなく通常の呼び出し
 
-                // player.sceneが正しくロードされているかを確認
-                console.log("Player scene loaded:", player.scene);
+            player.setSize(window.innerWidth, window.innerHeight);
+            player.play();
 
-                // アニメーションがある場合、ミキサーを作成
-                var mixer; // アニメーションミキサーを定義
-                var clock = new THREE.Clock(); // 時計を作成
+            // player.sceneが正しくロードされているかを確認
+            console.log("Player scene loaded:", player.scene);
 
-                // player.scene.animationsが存在するかチェック
-                if (player.scene && player.scene.animations && player.scene.animations.length) {
-                    mixer = new THREE.AnimationMixer(player.scene); // シーンを指定
-                    player.scene.animations.forEach(function (clip) {
-                        var action = mixer.clipAction(clip);
-                        action.play(); // アニメーションを再生
-                    });
-                } else {
-                    console.error("No animations found in the object."); // エラーメッセージ
-                }
+            // アニメーションがある場合、ミキサーを作成
+            var mixer; // アニメーションミキサーを定義
+            var clock = new THREE.Clock(); // 時計を作成
 
-                document.body.appendChild(player.dom);
-
-                window.addEventListener('resize', function () {
-                    player.setSize(window.innerWidth, window.innerHeight);
+            // player.scene.animationsが存在するかチェック
+            if (player.scene && player.scene.animations && player.scene.animations.length) {
+                mixer = new THREE.AnimationMixer(player.scene); // シーンを指定
+                player.scene.animations.forEach(function (clip) {
+                    var action = mixer.clipAction(clip);
+                    action.play(); // アニメーションを再生
                 });
+            } else {
+                console.error("No animations found in the object."); // エラーメッセージ
+            }
 
-                // アニメーションの更新ループを作成
-                function animate() {
-                    requestAnimationFrame(animate); // 次のフレームを要求
-                    var delta = clock.getDelta(); // 経過時間を取得
-                    if (mixer) mixer.update(delta); // ミキサーが存在する場合、アニメーションを更新
-                    player.render(); // シーンを再描画
-                }
+            document.body.appendChild(player.dom);
 
-                animate(); // アニメーションの開始
-            }).catch(error => {
-                console.error("Error loading player:", error);
+            window.addEventListener('resize', function () {
+                player.setSize(window.innerWidth, window.innerHeight);
             });
+
+            // アニメーションの更新ループを作成
+            function animate() {
+                requestAnimationFrame(animate); // 次のフレームを要求
+                var delta = clock.getDelta(); // 経過時間を取得
+                if (mixer) mixer.update(delta); // ミキサーが存在する場合、アニメーションを更新
+                player.render(); // シーンを再描画
+            }
+
+            animate(); // アニメーションの開始
         });
 
     </script>
