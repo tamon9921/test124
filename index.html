@@ -11,63 +11,65 @@
 </head>
 <body>
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.155.0/examples/js/controls/OrbitControls.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.155.0/examples/js/loaders/GLTFLoader.js"></script>
+<!-- ES Modules 用に CDN を使用 -->
+<script type="module">
 
-<script>
+    // 必要なモジュールをインポート
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.module.js';
+    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.155.0/examples/jsm/controls/OrbitControls.js';
+    import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.155.0/examples/jsm/loaders/GLTFLoader.js';
 
     // シーン、カメラ、レンダラーの初期化
-    var scene = new THREE.Scene();
-    var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-    var renderer = new THREE.WebGLRenderer({ antialias: true });
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize( window.innerWidth, window.innerHeight );
     document.body.appendChild( renderer.domElement );
 
     // 照明の追加
-    var light = new THREE.DirectionalLight( 0xffffff, 1 );
+    const light = new THREE.DirectionalLight( 0xffffff, 1 );
     light.position.set( 1, 1, 1 ).normalize();
     scene.add( light );
 
     // カメラ操作のためのOrbitControlsを追加
-    var controls = new THREE.OrbitControls( camera, renderer.domElement );
-    camera.position.set( 0, 2, 5 ); // カメラの初期位置
+    const controls = new OrbitControls( camera, renderer.domElement );
+    camera.position.set( 0.54, 1.729, 4.127 ); // カメラの初期位置
 
     // GLBファイルを読み込むためのGLTFLoader
-    var loader = new THREE.GLTFLoader();
-    var mixer; // アニメーションミキサーを定義
+    const loader = new GLTFLoader();
+    let mixer; // アニメーションミキサーを定義
 
-    loader.load( 'saru_a4.glb', function ( gltf ) {
+    loader.load( 'path_to_your_model.glb', function ( gltf ) {
 
-        var model = gltf.scene;
+        const model = gltf.scene;
         scene.add( model );
 
         // アニメーションが含まれている場合、アニメーションミキサーをセットアップ
         if (gltf.animations && gltf.animations.length) {
             mixer = new THREE.AnimationMixer(model);
             gltf.animations.forEach(function (clip) {
-                var action = mixer.clipAction(clip);
+                const action = mixer.clipAction(clip);
                 action.play(); // アニメーションを再生
             });
         }
 
         // ウィンドウのリサイズ処理
         window.addEventListener('resize', function () {
-            var width = window.innerWidth;
-            var height = window.innerHeight;
+            const width = window.innerWidth;
+            const height = window.innerHeight;
             renderer.setSize(width, height);
             camera.aspect = width / height;
             camera.updateProjectionMatrix();
         });
 
         // 毎フレームのレンダリング
-        var clock = new THREE.Clock();
+        const clock = new THREE.Clock();
         function animate() {
             requestAnimationFrame( animate );
 
             // アニメーションの更新
             if (mixer) {
-                var delta = clock.getDelta();
+                const delta = clock.getDelta();
                 mixer.update(delta);
             }
 
