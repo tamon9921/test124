@@ -20,62 +20,50 @@
 </head>
 <body ontouchstart="">
     <script type="module">
-    
-        import * as THREE from './js/three.module.js';
-        import { APP } from './js/app.js';
-        import { VRButton } from './js/VRButton.js';
-        import { OrbitControls } from './js/OrbitControls.js';
-        
-        window.OrbitControls = OrbitControls;
-        window.THREE = THREE;
-        window.VRButton = VRButton;
-    
-        var mixer, clock;
-    
-        var loader = new THREE.FileLoader();
-        loader.load( 'app.json', function ( text ) {
-    
-            var player = new APP.Player();
-            player.load( JSON.parse( text ) );
-            player.setSize( window.innerWidth, window.innerHeight );
-            player.play();
-    
-            document.body.appendChild( player.dom );
-    
-            // アニメーションミキサーを設定
-            if (player.scene && player.scene.animations && player.scene.animations.length) {
-                clock = new THREE.Clock(); // 時計を作成
-                mixer = new THREE.AnimationMixer(player.scene); // シーン全体にミキサーを適用
-    
-                // 各アニメーションクリップに対してアクションを開始
-                player.scene.animations.forEach(function(clip) {
-                    var action = mixer.clipAction(clip);
-                    action.play();
-                });
-            } else {
-                console.error("No animations found in the object.");
+
+    import * as THREE from './js/three.module.js';
+    import { APP } from './js/app.js';
+
+    window.THREE = THREE; // Used by APP Scripts.
+
+    var loader = new THREE.FileLoader();
+    loader.load( 'app.json', function ( text ) {
+
+        var player = new APP.Player();
+        player.load( JSON.parse( text ) );
+        player.setSize( window.innerWidth, window.innerHeight );
+        player.play();
+
+        // アニメーションの自動再生設定
+        player.mixer = new THREE.AnimationMixer( player.scene );
+
+        // シーン内のオブジェクトのアニメーションを再生する
+        player.scene.traverse( function ( object ) {
+            if ( object.animations && object.animations.length > 0 ) {
+                var action = player.mixer.clipAction( object.animations[0], object );
+                action.play();
             }
-    
-            window.addEventListener( 'resize', function () {
-                player.setSize( window.innerWidth, window.innerHeight );
-            });
-    
-            // 毎フレームでアニメーションの更新
-            function animate() {
-                requestAnimationFrame(animate);
-    
-                var delta = clock.getDelta(); // 経過時間を取得
-    
-                if (mixer) {
-                    mixer.update(delta); // アニメーションを更新
-                }
-            }
-    
-            animate(); // アニメーションを開始
-    
         });
-    
+
+        document.body.appendChild( player.dom );
+
+        window.addEventListener( 'resize', function () {
+            player.setSize( window.innerWidth, window.innerHeight );
+        } );
+
+        // アニメーションの更新
+        var clock = new THREE.Clock();
+        function animate() {
+            requestAnimationFrame( animate );
+            var delta = clock.getDelta();
+            if (player.mixer) player.mixer.update(delta);
+        }
+        animate();
+
+    } );
+
     </script>
+
 
 </body>
 </html>
