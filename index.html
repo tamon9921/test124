@@ -1,53 +1,74 @@
 <!DOCTYPE html>
 <html lang="ja">
-	<head>
-		<title>WebGL|3D画像</title>
-		<meta name="description" content="sekigamiが公開テスト中の作成資料です。">
-		<meta charset="utf-8">
-		<meta name="generator" content="Three.js Editor">
-		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-		<style>
-			body {
-				font-family: sans-serif;
-				font-size: 11px;
-				background-color: #000;
-				margin: 0px;
-			}
-			canvas {
-				display: block;
-			}
-		</style>
-	</head>
-	<body ontouchstart="">
-		<script type="module">
+<head>
+    <title>WebGL|3D画像</title>
+    <meta name="description" content="sekigamiが公開テスト中の作成資料です。">
+    <meta charset="utf-8">
+    <meta name="generator" content="Three.js Editor">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <style>
+        body {
+            font-family: sans-serif;
+            font-size: 11px;
+            background-color: #000;
+            margin: 0px;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body ontouchstart="">
+    <script type="module">
 
-			import * as THREE from './js/three.module.js';
-			import { APP } from './js/app.js';
-			import { VRButton } from './js/VRButton.js';
-			import { OrbitControls } from './js/OrbitControls.js';
-			window.OrbitControls = OrbitControls;
+        import * as THREE from './js/three.module.js';
+        import { APP } from './js/app.js';
+        import { VRButton } from './js/VRButton.js';
+        import { OrbitControls } from './js/OrbitControls.js';
+        window.OrbitControls = OrbitControls;
 
-			window.THREE = THREE; // Used by APP Scripts.
-			window.VRButton = VRButton; // Used by APP Scripts.
+        window.THREE = THREE; // Used by APP Scripts.
+        window.VRButton = VRButton; // Used by APP Scripts.
 
-			var loader = new THREE.FileLoader();
-			loader.load( 'app.json', function ( text ) {
+        var loader = new THREE.FileLoader();
+        loader.load('app.json', function (text) {
 
-				var player = new APP.Player();
-				player.load( JSON.parse( text ) );
-				player.setSize( window.innerWidth, window.innerHeight );
-				player.play();
+            var player = new APP.Player();
+            player.load(JSON.parse(text));
+            player.setSize(window.innerWidth, window.innerHeight);
+            player.play();
 
-				document.body.appendChild( player.dom );
+            // アニメーションがある場合、ミキサーを作成
+            var mixer; // アニメーションミキサーを定義
+            var clock = new THREE.Clock(); // 時計を作成
 
-				window.addEventListener( 'resize', function () {
+            if (player.scene.animations && player.scene.animations.length) {
+                mixer = new THREE.AnimationMixer(player.scene); // シーンを指定
+                player.scene.animations.forEach(function (clip) {
+                    var action = mixer.clipAction(clip);
+                    action.play(); // アニメーションを再生
+                });
+            } else {
+                console.error("No animations found in the object."); // エラーメッセージ
+            }
 
-					player.setSize( window.innerWidth, window.innerHeight );
+            document.body.appendChild(player.dom);
 
-				} );
+            window.addEventListener('resize', function () {
+                player.setSize(window.innerWidth, window.innerHeight);
+            });
 
-			} );
+            // アニメーションの更新ループを作成
+            function animate() {
+                requestAnimationFrame(animate); // 次のフレームを要求
+                var delta = clock.getDelta(); // 経過時間を取得
+                if (mixer) mixer.update(delta); // ミキサーが存在する場合、アニメーションを更新
+                player.render(); // シーンを再描画
+            }
 
-		</script>
-	</body>
+            animate(); // アニメーションの開始
+        });
+
+    </script>
+</body>
 </html>
