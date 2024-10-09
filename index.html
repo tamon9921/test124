@@ -1,69 +1,86 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <title>WebGL|3D画像</title>
-    <meta name="description" content="sekigamiが公開テスト中の作成資料です。">
-    <meta charset="utf-8">
-    <meta name="generator" content="Three.js Editor">
-    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js GLB Animation with Orbit Controls</title>
     <style>
-        body {
-            font-family: sans-serif;
-            font-size: 11px;
-            background-color: #000;
-            margin: 0px;
-        }
-        canvas {
-            display: block;
-        }
+        body { margin: 0; }
+        canvas { display: block; }
     </style>
 </head>
-<body ontouchstart="">
-    <script type="module">
+<body>
 
-    import * as THREE from './js/three.module.js';
-    import { APP } from './js/app.js';
+<script src="https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.155.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.155.0/examples/js/loaders/GLTFLoader.js"></script>
 
-    window.THREE = THREE; // Used by APP Scripts.
+<script>
 
-    var loader = new THREE.FileLoader();
-    loader.load( 'app.json', function ( text ) {
+    // シーン、カメラ、レンダラーの初期化
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+    var renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    document.body.appendChild( renderer.domElement );
 
-        var player = new APP.Player();
-        player.load( JSON.parse( text ) );
-        player.setSize( window.innerWidth, window.innerHeight );
-        player.play();
+    // 照明の追加
+    var light = new THREE.DirectionalLight( 0xffffff, 1 );
+    light.position.set( 1, 1, 1 ).normalize();
+    scene.add( light );
 
-        // アニメーションの自動再生設定
-        player.mixer = new THREE.AnimationMixer( player.scene );
+    // カメラ操作のためのOrbitControlsを追加
+    var controls = new THREE.OrbitControls( camera, renderer.domElement );
+    camera.position.set( 0, 2, 5 ); // カメラの初期位置
 
-        // シーン内のオブジェクトのアニメーションを再生する
-        player.scene.traverse( function ( object ) {
-            if ( object.animations && object.animations.length > 0 ) {
-                var action = player.mixer.clipAction( object.animations[0], object );
-                action.play();
-            }
+    // GLBファイルを読み込むためのGLTFLoader
+    var loader = new THREE.GLTFLoader();
+    var mixer; // アニメーションミキサーを定義
+
+    loader.load( 'saru_a4.glb', function ( gltf ) {
+
+        var model = gltf.scene;
+        scene.add( model );
+
+        // アニメーションが含まれている場合、アニメーションミキサーをセットアップ
+        if (gltf.animations && gltf.animations.length) {
+            mixer = new THREE.AnimationMixer(model);
+            gltf.animations.forEach(function (clip) {
+                var action = mixer.clipAction(clip);
+                action.play(); // アニメーションを再生
+            });
+        }
+
+        // ウィンドウのリサイズ処理
+        window.addEventListener('resize', function () {
+            var width = window.innerWidth;
+            var height = window.innerHeight;
+            renderer.setSize(width, height);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
         });
 
-        document.body.appendChild( player.dom );
-
-        window.addEventListener( 'resize', function () {
-            player.setSize( window.innerWidth, window.innerHeight );
-        } );
-
-        // アニメーションの更新
+        // 毎フレームのレンダリング
         var clock = new THREE.Clock();
         function animate() {
             requestAnimationFrame( animate );
-            var delta = clock.getDelta();
-            if (player.mixer) player.mixer.update(delta);
+
+            // アニメーションの更新
+            if (mixer) {
+                var delta = clock.getDelta();
+                mixer.update(delta);
+            }
+
+            controls.update(); // カメラ操作の更新
+            renderer.render( scene, camera );
         }
         animate();
 
-    } );
+    }, undefined, function ( error ) {
+        console.error( 'Error loading GLB file: ', error );
+    });
 
-    </script>
-
+</script>
 
 </body>
 </html>
