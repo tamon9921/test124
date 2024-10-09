@@ -39,8 +39,8 @@
     const loader = new GLTFLoader();
     let mixer; // アニメーションミキサーを定義
 
+    // GLBファイルを指定して読み込む
     loader.load( 'saru_a4.glb', function ( gltf ) {
-
         const model = gltf.scene;
         scene.add( model );
 
