@@ -1,84 +1,57 @@
 <!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Three.js GLB Animation with Orbit Controls</title>
-    <style>
-        body { margin: 0; }
-        canvas { display: block; }
-    </style>
-</head>
-<body>
+<html lang="en">
+	<head>
+		<title></title>
+		<meta charset="utf-8">
+		<meta name="generator" content="Three.js Editor">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				font-family: sans-serif;
+				font-size: 11px;
+				background-color: #000;
+				margin: 0px;
+			}
+			canvas {
+				display: block;
+			}
+		</style>
+	</head>
+	<body ontouchstart="">
+		<script type="importmap">
+			{
+				"imports": {
+					"three": "./js/three.module.js"
+				}
+			}
+		</script>
+		<script type="module">
 
-<!-- Three.js のモジュールをローカルからインポート -->
-<script type="module">
-    import * as THREE from './js/three.module.js';
-    import { OrbitControls } from './js/OrbitControls.js';
-    import { GLTFLoader } from './js/GLTFLoader.js';
+			import * as THREE from 'three';
+			import { APP } from './js/app.js';
 
-    // シーン、カメラ、レンダラーの初期化
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
+			window.THREE = THREE; // Used by APP Scripts.
 
-    // 照明の追加
-    const light = new THREE.DirectionalLight(0xffffff, 1);
-    light.position.set(1, 1, 1).normalize();
-    scene.add(light);
+			var loader = new THREE.FileLoader();
+			loader.load( 'app.json', function ( text ) {
 
-    // カメラの制御（OrbitControls）
-    const controls = new OrbitControls(camera, renderer.domElement);
-    camera.position.set(0, 2, 5); // カメラの初期位置
+				var player = new APP.Player();
+				player.load( JSON.parse( text ) );
+				player.setSize( window.innerWidth, window.innerHeight );
+				player.play();
 
-    // GLTFLoader を使用してGLBファイルをロード
-    const loader = new GLTFLoader();
-    let mixer;  // アニメーションミキサー
+				document.body.appendChild( player.dom );
 
-    loader.load('./saru_a4.glb', (gltf) => {
-        const model = gltf.scene;
-        scene.add(model);
+				window.addEventListener( 'resize', function () {
 
-        // アニメーションが存在する場合、ミキサーをセットアップ
-        if (gltf.animations.length > 0) {
-            mixer = new THREE.AnimationMixer(model);
-            gltf.animations.forEach((clip) => {
-                const action = mixer.clipAction(clip);
-                action.play();  // アニメーションを再生
-            });
-        }
+					player.setSize( window.innerWidth, window.innerHeight );
 
-        // ウィンドウサイズ変更に対応
-        window.addEventListener('resize', () => {
-            const width = window.innerWidth;
-            const height = window.innerHeight;
-            renderer.setSize(width, height);
-            camera.aspect = width / height;
-            camera.updateProjectionMatrix();
-        });
+				} );
 
-        // 毎フレームの描画処理
-        const clock = new THREE.Clock();
-        function animate() {
-            requestAnimationFrame(animate);
+			} );
 
-            // アニメーションの更新
-            if (mixer) {
-                const delta = clock.getDelta();
-                mixer.update(delta);
-            }
 
-            controls.update();  // カメラ操作の更新
-            renderer.render(scene, camera);  // シーンのレンダリング
-        }
 
-        animate();  // アニメーションの開始
-    }, undefined, (error) => {
-        console.error('GLBファイルの読み込みに失敗しました:', error);
-    });
-</script>
-
-</body>
+		</script>
+	</body>
 </html>
