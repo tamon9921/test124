@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 	<head>
-		<title></title>
+		<title>WebGL|3D画像</title>
+		<meta name="description" content="sekigamiが公開テスト中の作成資料です。">
 		<meta charset="utf-8">
 		<meta name="generator" content="Three.js Editor">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
@@ -18,19 +19,16 @@
 		</style>
 	</head>
 	<body ontouchstart="">
-		<script type="importmap">
-			{
-				"imports": {
-					"three": "./js/three.module.js"
-				}
-			}
-		</script>
 		<script type="module">
 
-			import * as THREE from 'three';
+			import * as THREE from './js/three.module.js';
 			import { APP } from './js/app.js';
+			import { VRButton } from './js/VRButton.js';
+			import { OrbitControls } from './js/OrbitControls.js';
+			window.OrbitControls = OrbitControls;
 
 			window.THREE = THREE; // Used by APP Scripts.
+			window.VRButton = VRButton; // Used by APP Scripts.
 
 			var loader = new THREE.FileLoader();
 			loader.load( 'app.json', function ( text ) {
@@ -49,8 +47,6 @@
 				} );
 
 			} );
-
-
 
 		</script>
 	</body>
